@@ -25,6 +25,7 @@ In this project, I have opted to use **Cohere AI** instead of **ChatGPT** due to
    npm install
 3. Start the backend server:
    ```bash
+   cd server
    node server.js
 5. Run the client with Expo:
    ```bash
