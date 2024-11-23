@@ -29,4 +29,12 @@ In this project, I have opted to use **Cohere AI** instead of **ChatGPT** due to
 5. Run the client with Expo:
    ```bash
    npx expo start
+6. Open the app on your mobile device using the Expo Go app or run on an emulator.
+
+
+## Usage
+- Open the app and adjust the slider to set your mood (1-5).
+- Provide a brief description of how you're feeling.
+- Click "Submit" to get AI-generated insights on your mood.
+- View past mood entries and their respective insights (coming soon).
 
