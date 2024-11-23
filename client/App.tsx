@@ -53,7 +53,10 @@ const App: React.FC = () => {
         maximumValue={5}
         step={1}
         value={mood}
-        onValueChange={setMood}
+        onValueChange={(value) => setMood(value)}
+        thumbTintColor="#6200EE"
+        minimumTrackTintColor="#6200EE"
+        maximumTrackTintColor="#ccc"
       />
 
       <TextInput
@@ -61,6 +64,7 @@ const App: React.FC = () => {
         placeholder="How are you feeling today?"
         value={description}
         onChangeText={setDescription}
+        multiline
       />
 
       <View style={styles.buttonContainer}>
