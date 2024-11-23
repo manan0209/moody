@@ -1,0 +1,27 @@
+{
+  "name": "moody",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-native-community/slider": "^4.5.5",
+    "axios": "^1.7.7",
+    "expo": "~52.0.11",
+    "expo-status-bar": "~2.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/node": "^22.9.3",
+    "@types/react": "~18.3.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "private": true
+}
