@@ -16,7 +16,6 @@ const cohere = new CohereClientV2({
 });
 console.log("CO_API_KEY:", process.env.CO_API_KEY);
 
-
 app.post("/api/mood", async (req, res) => {
   const { mood, description } = req.body;
 
@@ -34,13 +33,20 @@ app.post("/api/mood", async (req, res) => {
 
     console.log(response);
 
-    if (response && response.message && Array.isArray(response.message.content) && response.message.content.length > 0) {
+    if (
+      response &&
+      response.message &&
+      Array.isArray(response.message.content) &&
+      response.message.content.length > 0
+    ) {
       const insights = response.message.content[0].text.trim();
       res.json({ insights });
     } else {
       res
         .status(500)
-        .json({ error: "Unexpected API response format or no insights generated." });
+        .json({
+          error: "Unexpected API response format or no insights generated.",
+        });
     }
   } catch (error) {
     console.error(

@@ -1,27 +1,42 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, Button, ActivityIndicator, Alert, SafeAreaView, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Button,
+  ActivityIndicator,
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import Slider from "@react-native-community/slider";
 import axios from "axios";
-import { useFonts, Poppins_400Regular, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
-import AppLoading from 'expo-app-loading';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LineChart } from "react-native-chart-kit";
+import { Dimensions } from "react-native";
 
 const BASE_URL = "http://192.168.174.1:5000"; // Use your local network IP
 
 const App: React.FC = () => {
-  const [mood, setMood] = useState<number>(3);
+  const [emotion, setEmotion] = useState<string>("😐 Neutral");
+  const [intensity, setIntensity] = useState<number>(3);
   const [description, setDescription] = useState<string>("");
   const [insights, setInsights] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<{ emotion: string, intensity: number, description: string, insights: string, date: string }[]>([]);
 
-  let [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_600SemiBold,
-  });
-
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
+  useEffect(() => {
+    const loadHistory = async () => {
+      const storedHistory = await AsyncStorage.getItem('moodHistory');
+      if (storedHistory) {
+        setHistory(JSON.parse(storedHistory));
+      }
+    };
+    loadHistory();
+  }, []);
 
   const handleSubmit = async () => {
     if (!description.trim()) {
@@ -34,10 +49,17 @@ const App: React.FC = () => {
 
     try {
       const response = await axios.post(`${BASE_URL}/api/mood`, {
-        mood,
+        emotion,
+        intensity,
         description,
       });
-      setInsights(response.data.insights || "No insights returned.");
+      const newInsight = response.data.insights || "No insights returned.";
+      setInsights(newInsight);
+
+      const newEntry = { emotion, intensity, description, insights: newInsight, date: new Date().toISOString() };
+      const updatedHistory = [...history, newEntry];
+      setHistory(updatedHistory);
+      await AsyncStorage.setItem('moodHistory', JSON.stringify(updatedHistory));
     } catch (err: any) {
       console.error("Submission Error:", err);
       setError(err.response?.data?.message || "Failed to fetch insights. Please try again.");
@@ -46,18 +68,41 @@ const App: React.FC = () => {
     }
   };
 
+  const emotionLabels = ["😢 Very Sad", "😟 Sad", "😐 Neutral", "😊 Happy", "😁 Very Happy", "😡 Angry"];
+  const moodData = {
+    labels: history.map(entry => new Date(entry.date).toLocaleDateString()),
+    datasets: [
+      {
+        data: history.map(entry => {
+          const value = parseFloat(entry.intensity);
+          return isNaN(value) ? 0 : value;
+        }),
+      },
+    ],
+  };
+
+  console.log("Mood Data:", moodData);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Text style={styles.header}>Mood Analyzer</Text>
-        <Text style={styles.label}>Mood Level: {mood}</Text>
+        <Text style={styles.label}>Select Emotion:</Text>
+        <View style={styles.emotionContainer}>
+          {emotionLabels.map((label, index) => (
+            <TouchableOpacity key={index} style={[styles.emotionButton, emotion === label && styles.selectedEmotionButton]} onPress={() => setEmotion(label)}>
+              <Text style={styles.emotionText}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={styles.label}>Intensity: {intensity}</Text>
         <Slider
           style={styles.slider}
           minimumValue={1}
           maximumValue={5}
           step={1}
-          value={mood}
-          onValueChange={setMood}
+          value={intensity}
+          onValueChange={setIntensity}
           minimumTrackTintColor="#1E90FF"
           maximumTrackTintColor="#000000"
         />
@@ -74,6 +119,51 @@ const App: React.FC = () => {
         {loading && <ActivityIndicator size="large" color="#1E90FF" />}
         {error && <Text style={styles.error}>{error}</Text>}
         {insights && <Text style={styles.insights}>{insights}</Text>}
+        <Text style={styles.chartHeader}>Mood Over Time</Text>
+        {history.length > 0 && (
+          <LineChart
+            data={moodData}
+            width={Dimensions.get("window").width - 40}
+            height={220}
+            chartConfig={{
+              backgroundColor: "#1E90FF",
+              backgroundGradientFrom: "#1E90FF",
+              backgroundGradientTo: "#87CEFA",
+              decimalPlaces: 0, // Ensure no decimal places for mood values
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: "6",
+                strokeWidth: "2",
+                stroke: "#1E90FF",
+              },
+            }}
+            bezier
+            style={{
+              marginVertical: 8,
+              borderRadius: 16,
+            }}
+            yLabelsOffset={10}
+            yAxisLabel=""
+            yAxisSuffix=""
+            fromZero
+            segments={5}
+            formatYLabel={(yValue) => `${parseInt(yValue)}`}
+          />
+        )}
+        <Text style={styles.historyHeader}>Mood History</Text>
+        {history.map((entry, index) => (
+          <View key={index} style={styles.historyItem}>
+            <Text style={styles.historyText}>Date: {new Date(entry.date).toLocaleDateString()}</Text>
+            <Text style={styles.historyText}>Emotion: {entry.emotion}</Text>
+            <Text style={styles.historyText}>Intensity: {entry.intensity}</Text>
+            <Text style={styles.historyText}>Description: {entry.description}</Text>
+            <Text style={styles.historyText}>Insights: {entry.insights}</Text>
+          </View>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -93,14 +183,30 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 20,
     marginTop: 40, // Add margin to the top to avoid touching the navbar
-    color: "#333333",
-    fontFamily: 'Poppins_600SemiBold',
+    color: "#1E90FF",
   },
   label: {
     fontSize: 18,
     marginBottom: 10,
     color: "#666666",
-    fontFamily: 'Poppins_400Regular',
+  },
+  emotionContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  emotionButton: {
+    padding: 10,
+    margin: 5,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+  },
+  selectedEmotionButton: {
+    backgroundColor: "#1E90FF",
+  },
+  emotionText: {
+    fontSize: 18,
   },
   slider: {
     width: "100%",
@@ -121,7 +227,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
-    fontFamily: 'Poppins_400Regular',
   },
   buttonContainer: {
     width: "100%",
@@ -132,13 +237,42 @@ const styles = StyleSheet.create({
   error: {
     color: "red",
     marginTop: 10,
-    fontFamily: 'Poppins_400Regular',
   },
   insights: {
     marginTop: 20,
     fontSize: 16,
     color: "#333333",
-    fontFamily: 'Poppins_400Regular',
+  },
+  chartHeader: {
+    fontSize: 22,
+    fontWeight: "600",
+    marginTop: 20,
+    marginBottom: 10,
+    color: "#1E90FF",
+  },
+  historyHeader: {
+    fontSize: 22,
+    fontWeight: "600",
+    marginTop: 20,
+    marginBottom: 10,
+    color: "#1E90FF",
+  },
+  historyItem: {
+    backgroundColor: "#ffffff",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    width: "100%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  historyText: {
+    fontSize: 16,
+    color: "#333333",
+    marginBottom: 5,
   },
 });
 
