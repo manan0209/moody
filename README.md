@@ -5,11 +5,14 @@ A simple React Native app that helps users track their daily moods and gain AI-g
 
 
 ## Features
-- Mood scale input (1-5) using a slider
+- Emotion selection with emoticons
+- Intensity scale input (1-5) using a slider
 - Text input for mood description
 - AI-powered insights based on user mood and description
 - Clear and minimalistic UI design
 - Error handling for better user experience
+- Local storage of past mood entries and insights
+- Data visualization of mood over time
 
 ## Why Cohere AI?
 In this project, I have opted to use **Cohere AI** instead of **ChatGPT** due to the cost considerations associated with using ChatGPT's paid API. ChatGPT requires a paid subscription for its higher-tier models, which might be impractical for testing or demonstration purposes. Cohere offers similar functionality with more flexible usage for my needs, making it an ideal choice to demonstrate the core features of the app. 
@@ -38,8 +41,9 @@ In this project, I have opted to use **Cohere AI** instead of **ChatGPT** due to
 
 
 ## Usage
-- Open the app and adjust the slider to set your mood (1-5).
+- Open the app and select an emotion using the emoticons.
+- Adjust the slider to set the intensity of your mood (1-5).
 - Provide a brief description of how you're feeling.
 - Click "Submit" to get AI-generated insights on your mood.
-- View past mood entries and their respective insights (coming soon).
-
+- View past mood entries and their respective insights.
+- Visualize your mood over time with the data visualization feature.
