@@ -23,7 +23,11 @@ In this project, I have opted to use **Cohere AI** instead of **ChatGPT** due to
    ```bash
    cd moody
    npm install
-3. Start the backend server:
+3. Add your Cohere API key:
+   Create a .env file in the root of the server directory.
+   ```bash
+   CO_API_KEY=your-cohere-api-key
+4. Start the backend server:
    ```bash
    cd server
    node server.js
